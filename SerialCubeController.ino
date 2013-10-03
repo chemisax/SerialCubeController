@@ -12,10 +12,10 @@ int serialBufferSize;
 char serialBuffer[38];
 
 byte tempFrame[4][4][2] = {
-{{B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}},
-{{B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}},
-{{B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}},
-{{B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}}};
+{{B11111111,B11111111}, {B11111111,B11111111}, {B11111111,B11111111}, {B11111111,B11111111}},
+{{B11111111,B11111111}, {B11111111,B11111111}, {B11111111,B11111111}, {B11111111,B11111111}},
+{{B11111111,B11111111}, {B11111111,B11111111}, {B11111111,B11111111}, {B11111111,B11111111}},
+{{B11111111,B11111111}, {B11111111,B11111111}, {B11111111,B11111111}, {B11111111,B11111111}}};
 
 //Animation
 byte frame[4][4][2] = {
@@ -54,6 +54,11 @@ void setup () {
 }
 
 void loop () {
+  checkSerialBuffer();
+  writeCubes();
+}
+
+void checkSerialBuffer () {
   serialBufferSize = Serial.available();
   if (serialBufferSize == messageSize) {
     for (int i=0;i<serialBufferSize;i++) serialBuffer[i] = Serial.read();
@@ -61,7 +66,6 @@ void loop () {
   } else if (serialBufferSize > messageSize) {
     flushBuffer(serialBufferSize);
   }
-  writeCubes();
 }
 
 void parseData () {
@@ -114,14 +118,19 @@ void parseData () {
       //Serial.write(error);
     }
   } else if (serialBuffer[0] == push && serialBuffer[2] == push && serialBuffer[37] == push) {
-    //Push the data to the real array to update the frame
+    pushFrame();
   } else {
     //Serial.write(error);
   }
 }
 
+//move the values from the temp frame to the real frame
+void pushFrame () {
+  for (int i=0;i<4;i++) for (int j=0;j<4;j++) for (int k=0;k<2;k++) frame[i][j][k] == tempFrame[i][j][k];
+  //for (int i=0;i<4;i++) for (int j=0;j<4;j++) for (int k=0;k<2;k++) Serial.println(frame[i][j][k]);
+}
+
 void flushBuffer (int until) {
-  //Serial.println(error);
   char flushs;
   for (int i=0;i<until;i++) flushs = Serial.read(); 
 }
@@ -129,7 +138,7 @@ void flushBuffer (int until) {
 //Write te image on the cube the image on the cube
 void writeCubes () {
   for (int i=0; i<4; i++) {
-       digitalWrite(latchP, LOW);
+       digitalWrite(latch, LOW);
        if (i==0) digitalWrite(layers[3],LOW);
        else digitalWrite(layers[i-1],LOW);
        
