@@ -67,17 +67,45 @@ void loop () {
 void parseData () {
   //Check Integrity
   if (serialBuffer[0] == messageStart && serialBuffer[2] == dataSeparator && serialBuffer[4] == dataSeparator && serialBuffer[37] == messageEnd) {
-    if (serialBuffer[1] == '0' || serialBuffer[1] == '1') {
-      int workingCube;
-      int workingLayer;
+    
+    //Check if cube number is within acceptable range
+    if (serialBuffer[1] == '0' || serialBuffer[1] == '1' || serialBuffer[1] == '2' || serialBuffer[1] == '3') {
       
-      workingCube = (serialBuffer[1] == '1') ? 1 : 0;  
+      int workingCube, workingLayer, temp;
+      
+      //Convert ASCII to int
+      switch (serialBuffer[1]) {
+       case '0': workingCube = 0;
+       case '1': workingCube = 1;
+       case '2': workingCube = 2;
+       case '3': workingCube = 3; 
+      }
       
       if (serialBuffer[3] == '0' || serialBuffer[3] == '1') {
         //Received valid data
         workingLayer = (serialBuffer[3] == '0') ? 0 : 2;
-        for (int i=0; i<16; i++) tempFrame[workingCube][workingLayer][i] = (serialBuffer[i+5] == on) ? 1 : 0;
-        for (int i=0; i<16; i++) tempFrame[workingCube][workingLayer+1][i] = (serialBuffer[i+21] == on) ? 1 : 0;
+        
+        for (int i=0; i<16; i++) {
+          temp = (serialBuffer[i+5] == on) ? 1 : 0;
+          if (i<=7) {
+            if (temp == 0) bitSet(tempFrame[workingCube][workingLayer][0], 7-i);
+            else bitClear(tempFrame[workingCube][workingLayer][0], 7-i);
+          } else {
+             if (temp == 0) bitSet(tempFrame[workingCube][workingLayer][1], 7-(i-8));
+             else bitClear(tempFrame[workingCube][workingLayer][1], 7-(i-8)); 
+          }          
+        }
+        
+        for (int i=0; i<16; i++) {
+          temp = (serialBuffer[i+21] == on) ? 1 : 0;
+          if (i<=7) {
+            if (temp == 0) bitSet(tempFrame[workingCube][workingLayer+1][0], 7-i);
+            else bitClear(tempFrame[workingCube][workingLayer+1][0], 7-i);
+          } else {
+             if (temp == 0) bitSet(tempFrame[workingCube][workingLayer+1][1], 7-(i-8));
+             else bitClear(tempFrame[workingCube][workingLayer+1][1], 7-(i-8)); 
+          }          
+        }
         //Serial.write(ok);
       } else {
         //Serial.write(error);
@@ -99,7 +127,7 @@ void flushBuffer (int until) {
 }
 
 //Write te image on the cube the image on the cube
-void writeCube () {
+void writeCubes () {
   for (int i=0; i<4; i++) {
        digitalWrite(latchP, LOW);
        if (i==0) digitalWrite(layers[3],LOW);
