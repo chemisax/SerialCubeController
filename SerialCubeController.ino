@@ -7,22 +7,30 @@ char error = '!'; // ASCII: 33 Send when an error has ocurred and the message is
 char on = '1'; // ASCII 48 On character in ASCII from serial connection
 char push = 'P'; //When received in the correct format, this character fires the push function that will update the frame
 int messageSize = 38; //Default message size
+int conectionSpeed = 57600; //bauds
 int serialBufferSize;
 char serialBuffer[38];
-byte tempFrame[2][4][16];
+
+byte tempFrame[4][4][2] = {
+{{B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}},
+{{B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}},
+{{B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}},
+{{B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}}};
 
 //Animation
-byte frame[8][2] = 
-{{B11111111,B11111111},{B11111111,B11111111},{B11111111,B11111111},{B11111111,B11111111},
-{B11111111,B11111111},{B11111111,B11111111},{B11111111,B11111111},{B11111111,B11111111}};
+byte frame[4][4][2] = {
+{{B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}},
+{{B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}},
+{{B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}},
+{{B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}, {B10101010,B10101010}}};
 
 //Cube multiplexer serial connection
-int latchPin = 3;
-int clockPin = 4;
-int dataPin = 2;
-int layers[4] = {5,6,7,8}; // Cube 1 layer switcher pins
-int layers1[4] = {12,13,0,1}; //Cube 2 layers switcher pins
+int latch = 12;
+int clock = 11;
+int data = 10;
 
+//Pins for the layers of the cubes
+int layers[4] = {9,8,7,6};
 
 //Time to wait after the latch signal has been sent and before turning on the layer
 //In microseconds. default: 25
@@ -33,9 +41,14 @@ int offset = 25;
 int frametime = 2500;
 
 void setup () {
-  //Start serial communication and write a welcome message
-  Serial.begin(57600);
-  Serial.write("HELLO");
+  Serial.begin(conectionSpeed);
+  
+  pinMode(latch,OUTPUT);
+  pinMode(clock,OUTPUT);
+  pinMode(data,OUTPUT);
+  for (int i=0; i<4; i++) pinMode(layers[i],OUTPUT);
+    
+  //Turn off the LED on pin 13
   pinMode(13,OUTPUT);
   digitalWrite(13,LOW);
 }
@@ -48,6 +61,7 @@ void loop () {
   } else if (serialBufferSize > messageSize) {
     flushBuffer(serialBufferSize);
   }
+  writeCubes();
 }
 
 void parseData () {
@@ -84,27 +98,21 @@ void flushBuffer (int until) {
   for (int i=0;i<until;i++) flushs = Serial.read(); 
 }
 
-//This function is from the previous version of the code and it is not functional as it is! it must be updated
+//Write te image on the cube the image on the cube
 void writeCube () {
   for (int i=0; i<4; i++) {
-       digitalWrite(latchPin, LOW);
+       digitalWrite(latchP, LOW);
        if (i==0) digitalWrite(layers[3],LOW);
        else digitalWrite(layers[i-1],LOW);
-       shiftOut(dataPin, clockPin, MSBFIRST, frame[i][0]);
-       shiftOut(dataPin, clockPin, MSBFIRST, frame[i][1]);
-       digitalWrite(latchPin, HIGH);
+       
+       for (int j=0;j<4;j++) {
+         shiftOut(data, clock, MSBFIRST, frame[j][i][0]);
+         shiftOut(data, clock, MSBFIRST, frame[j][i][1]);
+       }
+       
+       digitalWrite(latch, HIGH);
        delayMicroseconds(offset);
        digitalWrite(layers[i], HIGH);
-       
-       digitalWrite(latchPin1, LOW);
-       if (i==0) digitalWrite(layers1[3],LOW);
-       else digitalWrite(layers1[i-1],LOW);
-       shiftOut(dataPin1, clockPin1, MSBFIRST, frame[i][0]);
-       shiftOut(dataPin1, clockPin1, MSBFIRST, frame[i][1]);
-       digitalWrite(latchPin1, HIGH);
-       delayMicroseconds(offset);
-       digitalWrite(layers1[i], HIGH);
-      
        delayMicroseconds(frametime);
-     }  
+     }
 }
