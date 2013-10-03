@@ -6,7 +6,7 @@ char error = '!'; // ASCII: 33
 char on = '1'; // ASCII 48
 char push = 'P';
 
-int messageSize = 38;
+int messageSize = 38; //Mesage of the file
 
 
 int serialBufferSize;
