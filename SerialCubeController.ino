@@ -1,4 +1,3 @@
-
 //Serial communication protocol
 char messageStart = '<'; // ASCII: 60 The message will always start with this character
 char messageEnd = '>'; // ASCII: 62 The message will always end with this character
