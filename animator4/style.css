@@ -1,0 +1,95 @@
+body {
+	background-color: #dbe9f7;
+	margin: 0px;
+	padding: 0px;
+	font: 14px/15px "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+}
+
+#navigation {
+	background: #8dc5ef;
+	width: 100%;
+}
+
+#navigation ul {
+	display: block;
+	margin: 0px;
+	padding: 0px;
+}
+
+#navigation li {
+	display: inline-block;
+	height: 30px;
+	line-height: 30px;
+	padding-right: 5px;
+	padding-left: 5px;
+	margin-left: -4px;
+	color: #fff;
+	border-right: 1px solid #a4b3eb;
+}
+#navigation li:hover {
+	background: ;
+	background-color: #54acef;
+}
+li#title,
+li#scene {
+	cursor: text;
+}
+#num-frame,
+#num-scene {
+	cursor: default;
+}
+#frame-next,
+#frame-prev,
+#scene-next,
+#scene-prev,
+#new-frame,
+#new-scene,
+#save {
+	cursor: pointer;
+}
+
+#a_canvas {
+	margin-top: 10px;
+	margin-left: 10px;
+}
+.cube span {
+	display: block;
+	width: 100%;
+	margin-bottom: 5px;
+}
+.cube {
+	float: left;
+	margin-right: 10px;
+	width: 75px;
+}
+.layer-spacer {
+	display: block;
+	width: 100%;
+	height: 10px;
+}
+
+#outputWindow {
+	position: absolute;
+	z-index: 10;
+	background: #b6b1ef;
+	top: 40px;
+	left: 10px;
+	width: 500px;
+	height: 360px;
+	padding: 5px;
+}
+#outputWindow textarea {
+	background: #ffffff;
+	width: 500px;
+	height: 320px;
+}
+#outputWindow p{
+	text-align: center;
+}
+#outputWindow span{
+	cursor: pointer;
+	text-align: center;
+	background-color: #7371ae;
+	padding: 10px;
+	color: #ffffff;
+}
