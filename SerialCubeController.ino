@@ -7,7 +7,7 @@ char error = '!'; // ASCII: 33 Send when an error has ocurred and the message is
 char on = '1'; // ASCII 48 On character in ASCII from serial connection
 char push = 'P'; //When received in the correct format, this character fires the push function that will update the frame
 int messageSize = 38; //Default message size
-int conectionSpeed = 57600; //bauds. default 57600
+int conectionSpeed = 19200; //bauds. default 57600
 int serialBufferSize;
 char serialBuffer[38];
 
@@ -26,12 +26,12 @@ byte frame[4][4][2] =
 {{170,170}, {170,170}, {170,170}, {170,170}}};
 
 //Cube multiplexer serial connection
-int latch = 12;
-int clock = 11;
-int data = 10;
+int latch = 9;
+int clock = 10;
+int data = 8;
 
 //Pins for the layers of the cubes
-int layers[4] = {9,8,7,6};
+int layers[4] = {3,4,6,7};
 
 // Time to wait after the latch signal has been sent and before turning on the layer
 // default: 25us
@@ -52,6 +52,8 @@ void setup () {
   //Turn off the LED on pin 13
   pinMode(13,OUTPUT);
   digitalWrite(13,LOW);
+  
+  Serial.write(ok);
 }
 
 void loop () {
@@ -76,7 +78,7 @@ void parseData () {
     //Check if cube number is within acceptable range
     if (serialBuffer[1] == '0' || serialBuffer[1] == '1' || serialBuffer[1] == '2' || serialBuffer[1] == '3') {
       
-      int workingCube, workingLayer, temp;
+      int workingCube, workingLayer;
       
       //Convert ASCII to int
       switch (serialBuffer[1]) {
@@ -85,53 +87,58 @@ void parseData () {
        case '2': workingCube = 2; break;
        case '3': workingCube = 3;
       }
-      
+            
       if (serialBuffer[3] == '0' || serialBuffer[3] == '1') {
         //Received valid data
         workingLayer = (serialBuffer[3] == '0') ? 0 : 2;
         
-        for (int i=0; i<16; i++) {
-          temp = (serialBuffer[i+5] == on) ? 1 : 0;
-          if (i<=7) {
-            if (temp == 0) bitSet(tempFrame[workingCube][workingLayer][0], 7-i);
-            else bitClear(tempFrame[workingCube][workingLayer][0], 7-i);
-          } else {
-             if (temp == 0) bitSet(tempFrame[workingCube][workingLayer][1], 7-(i-8));
-             else bitClear(tempFrame[workingCube][workingLayer][1], 7-(i-8)); 
-          }          
+        tempFrame[workingCube][workingLayer][0] = 0;
+        tempFrame[workingCube][workingLayer][1] = 0;
+        tempFrame[workingCube][workingLayer+1][0] = 0;
+        tempFrame[workingCube][workingLayer+1][1] = 0;
+        
+        for (int i=0; i<8; i++) {
+          int sw = (serialBuffer[i+5] == on) ? 1 : 0;
+          if (sw == 1) bitSet(tempFrame[workingCube][workingLayer][0],7-i);
         }
         
-        for (int i=0; i<16; i++) {
-          temp = (serialBuffer[i+21] == on) ? 1 : 0;
-          if (i<=7) {
-            if (temp == 0) bitSet(tempFrame[workingCube][workingLayer+1][0], 7-i);
-            else bitClear(tempFrame[workingCube][workingLayer+1][0], 7-i);
-          } else {
-             if (temp == 0) bitSet(tempFrame[workingCube][workingLayer+1][1], 7-(i-8));
-             else bitClear(tempFrame[workingCube][workingLayer+1][1], 7-(i-8)); 
-          }          
+        for (int i=0; i<8; i++) {
+          int sw = (serialBuffer[i+13] == on) ? 1 : 0;
+          if (sw == 1) bitSet(tempFrame[workingCube][workingLayer][1],7-i);
         }
+        
+        for (int i=0; i<8; i++) {
+          int sw = (serialBuffer[i+21] == on) ? 1 : 0;
+          if (sw == 1) bitSet(tempFrame[workingCube][workingLayer+1][0],7-i);
+        }
+        
+        for (int i=0; i<8; i++) {
+          int sw = (serialBuffer[i+29] == on) ? 1 : 0;
+          if (sw == 1) bitSet(tempFrame[workingCube][workingLayer+1][1],7-i);
+        }        
         //Serial.write(ok);
       } else {
-        //Serial.write(error);
+        Serial.write(error);
       }
     } else {
-      //Serial.write(error);
+      Serial.write(error);
     }
   } else if (serialBuffer[0] == push && serialBuffer[2] == push && serialBuffer[37] == push) {
     pushFrame();
   } else {
-    //Serial.write(error);
+    Serial.write(error);
   }
 }
 
 //move the values from the temp frame to the real frame
 void pushFrame () {
   for (int i=0;i<4;i++) for (int j=0;j<4;j++) for (int k=0;k<2;k++) frame[i][j][k] = tempFrame[i][j][k];
+  //for (int i = 0; i<4; i++) for (int j=0;j<4;j++) for (int k=0;k<2;k++) Serial.println(frame[i][j][k], BIN);
 }
 
 void flushBuffer (int until) {
   char flushs;
+  Serial.write(dataSeparator);
   for (int i=0;i<until;i++) flushs = Serial.read(); 
 }
 
