@@ -92,6 +92,8 @@ void parseData () {
         //Received valid data
         workingLayer = (serialBuffer[3] == '0') ? 0 : 2;
         
+        
+        
         tempFrame[workingCube][workingLayer][0] = 0;
         tempFrame[workingCube][workingLayer][1] = 0;
         tempFrame[workingCube][workingLayer+1][0] = 0;
