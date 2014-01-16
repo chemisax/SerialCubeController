@@ -2,7 +2,13 @@ animation = new Array();
 currentScene = 0;
 currentFrame = 0;
 
+var touch = navigator.userAgent.match(/iPad/i) != null;
+
 $(document).ready(function() {
+	document.ontouchmove = function(e) {
+		e.preventDefault();
+	}
+
 	console.log("start");
 	loadXML();
 });
@@ -39,61 +45,57 @@ function setup () {
 		
 	$('li#title').text(animation[0]);
 	
-	$("#title").click(function () {
+	str = (touch) ? "touchstart" : "click";
+	
+	alert(str);
+	
+	$("#title").on(str, function () {
 		animation[0] = window.prompt("New title:", animation[0]);
 		$('li#title').text(animation[0]);
 	});
 	
-	$("#scene").click(function () {
+	$("#scene").on(str, function () {
 		animation[1][currentScene][0] = window.prompt("New Scene title:", animation[1][currentScene][0]);
 		$('li#scene').text(animation[1][currentScene][0]);
 	});
 	
-	$("#scene-next").click(function () {
+	$("#scene-next").on(str, function () {
 		totalScenes = animation[1].length-1;
 		if (currentScene != totalScenes) {
 			saveframe();
 			currentScene++;
 			currentFrame = 0;
 			updateInterface();
-		} else {
-			alert("no more scenes");
 		}
 	});
 	
-	$("#scene-prev").click(function () {
+	$("#scene-prev").on(str, function () {
 		if (currentScene != 0) {
 			saveframe();
 			currentScene--;
 			currentFrame = 0;
 			updateInterface();
-		} else {
-			alert("no more scenes");
-		}
+		} 
 	});
 	
-	$("#frame-next").click(function () {
+	$("#frame-next").on(str, function () {
 		frames = animation[1][currentScene][1].length-1;
 		if (currentFrame != frames) {
 			saveframe();
 			currentFrame++;
 			updateInterface();
-		} else {
-			alert("no more frames");
 		}
 	});
 	
-	$("#frame-prev").click(function () {
+	$("#frame-prev").on(str, function () {
 		if (currentFrame != 0) {
 			saveframe();
 			currentFrame--;
 			updateInterface();
-		} else {
-			alert("no more frames");
 		}
 	});
 	
-	$("#new-scene").click(function () {
+	$("#new-scene").on(str, function () {
 		saveframe();
 		newSceneId = animation[1].length;
 		animation[1][newSceneId] = new Array();
@@ -114,7 +116,7 @@ function setup () {
 		console.log(animation);
 	});
 	
-	$("#new-frame").click(function () {
+	$("#new-frame").on(str, function () {
 		saveframe();
 		fid = animation[1][currentScene][1].length;
 		animation[1][currentScene][1][fid] = new Array();
@@ -130,7 +132,7 @@ function setup () {
 		console.log(animation);
 	});
 	
-	$("#del-frame").click(function () {
+	$("#del-frame").on(str, function () {
 		if (animation[1][currentScene][1].length > 1) {
 			animation[1][currentScene][1].splice(currentFrame,1);
 			console.log("del frame");
@@ -138,12 +140,10 @@ function setup () {
 			currentFrame--;
 			updateInterface();
 			
-		} else {
-			alert("Cant delete last frame, please delete scene");
 		}
 	});
 	
-	$("#del-scene").click(function () {
+	$("#del-scene").on(str, function () {
 		if (animation[1].length > 1) {
 			animation[1].splice(currentScene,1);
 			console.log("del scene");
@@ -152,15 +152,12 @@ function setup () {
 			currentFrame=0;
 			updateInterface();
 			
-		} else {
-			alert("Cant delete last frame, please delete scene");
-		}
+		} 
 	});
 	
-	$("#save").click(function (){
+	$("#save").on(str, function (){
 		saveframe();
 		createFile();
-		$("#outputWindow").show();
 	});
 	
 	updateInterface();
@@ -232,6 +229,8 @@ function createFile (){
         url:        "save.php",
         type:    	"POST",
         data:       "xml=" + file,
-        complete:   function(e) { alert(e.responseText); }
+        complete:   function(e) { 
+        	$("#save").fadeOut(300).fadeIn(10);
+        }
     });
 }
